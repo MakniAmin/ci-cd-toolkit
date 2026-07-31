@@ -56,7 +56,7 @@ runs:
         tags: ${{ inputs.registry }}/${{ inputs.image-name }}:latest
 
     - name: Scan image with Trivy
-      uses: aquasecurity/trivy-action@0.24.0
+      uses: aquasecurity/trivy-action@0.36.0
       with:
         image-ref: ${{ inputs.registry }}/${{ inputs.image-name }}:latest
         format: 'table'
