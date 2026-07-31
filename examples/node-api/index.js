@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 
 app.get('/', (req, res) => {
-  res.json({ status: 'ok', service: 'node-api' });
+  res.json({ status: 'healthy', service: 'node-api' });
 });
 
 app.get('/health', (req, res) => res.sendStatus(200));
