@@ -1,0 +1,31 @@
+name: 'Lint & Test'
+description: 'Installs dependencies, lints, and tests. Language-agnostic: just pass the commands.'
+
+inputs:
+  working-directory:
+    default: '.'
+  setup-command:
+    description: 'e.g. "npm ci" or "pip install -r requirements.txt"'
+    required: true
+  lint-command:
+    required: true
+  test-command:
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install dependencies
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: ${{ inputs.setup-command }}
+
+    - name: Lint
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: ${{ inputs.lint-command }}
+
+    - name: Test
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: ${{ inputs.test-command }}

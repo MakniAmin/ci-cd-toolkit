@@ -1,0 +1,44 @@
+name: node-api CI/CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/node-api/**'
+      - '.github/workflows/node-api.yml'
+      - '.github/actions/**'
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/lint-and-test
+        with:
+          working-directory: examples/node-api
+          setup-command: npm ci
+          lint-command: npm run lint
+          test-command: npm test
+
+  build-scan-push:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/docker-build-scan-push
+        with:
+          image-name: ${{ github.repository }}/node-api-demo
+          context: examples/node-api
+          registry-username: ${{ github.actor }}
+          registry-password: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-scan-push
+    if: ${{ vars.DEPLOY_ENABLED == 'true' }}
+    steps:
+      - name: Trigger deploy hook
+        run: curl -fsS -X POST "${{ secrets.NODE_API_DEPLOY_HOOK }}"

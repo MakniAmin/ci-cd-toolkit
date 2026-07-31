@@ -1,0 +1,72 @@
+name: 'Docker Build, Scan & Push'
+description: 'Builds a Docker image, scans it for vulnerabilities with Trivy, and pushes it to a registry only if the scan passes.'
+
+inputs:
+  image-name:
+    description: 'Image name, e.g. myorg/my-app'
+    required: true
+  context:
+    description: 'Docker build context path'
+    default: '.'
+  dockerfile:
+    description: 'Path to the Dockerfile, relative to context'
+    default: 'Dockerfile'
+  registry:
+    description: 'Container registry hostname'
+    default: 'ghcr.io'
+  registry-username:
+    required: true
+  registry-password:
+    required: true
+  severity-threshold:
+    description: 'Comma-separated severities that fail the build'
+    default: 'CRITICAL,HIGH'
+
+outputs:
+  image-tag:
+    description: 'Full tag of the pushed image'
+    value: ${{ steps.meta.outputs.tags }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Log in to registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ inputs.registry }}
+        username: ${{ inputs.registry-username }}
+        password: ${{ inputs.registry-password }}
+
+    - name: Extract image metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ inputs.registry }}/${{ inputs.image-name }}
+        tags: |
+          type=sha,format=short
+          type=raw,value=latest
+
+    - name: Build image locally (for scanning)
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ inputs.context }}
+        file: ${{ inputs.context }}/${{ inputs.dockerfile }}
+        push: false
+        load: true
+        tags: ${{ inputs.registry }}/${{ inputs.image-name }}:latest
+
+    - name: Scan image with Trivy
+      uses: aquasecurity/trivy-action@0.24.0
+      with:
+        image-ref: ${{ inputs.registry }}/${{ inputs.image-name }}:latest
+        format: 'table'
+        exit-code: '1'
+        severity: ${{ inputs.severity-threshold }}
+
+    - name: Push image
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ inputs.context }}
+        file: ${{ inputs.context }}/${{ inputs.dockerfile }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
