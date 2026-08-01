@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/docker-build-scan-push
         with:
-          image-name: ${{ github.repository }}/node-api-demo
+          image-name: makniamin/ci-cd-toolkit/node-api-demo
           context: examples/node-api
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}

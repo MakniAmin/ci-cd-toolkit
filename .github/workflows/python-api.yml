@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/docker-build-scan-push
         with:
-          image-name: ${{ github.repository }}/python-api-demo
+          image-name: makniamin/ci-cd-toolkit/python-api-demo
           context: examples/python-api
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
