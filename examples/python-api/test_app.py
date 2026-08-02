@@ -6,3 +6,4 @@ def test_index_returns_ok():
     response = client.get("/")
     assert response.status_code == 200
     assert response.get_json()["status"] == "ok"
+    
